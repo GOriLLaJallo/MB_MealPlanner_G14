@@ -161,6 +161,40 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Feature Avanzata: Scalo automatico ingredienti
+  Future<void> consumeMeal(String mealPlanId) async {
+    final index = _mealPlans.indexWhere((m) => m.id == mealPlanId);
+    if (index == -1) return;
+
+    final plan = _mealPlans[index];
+    if (plan.isConsumed) return; // Già consumato
+
+    plan.isConsumed = true;
+    await _dbHelper.update('meal_plans', plan.toJson(), 'id', plan.id);
+
+    final recipe = _recipes.firstWhere(
+      (r) => r.id == plan.recipeId, 
+      orElse: () => Recipe(id: '', name: '', category: '', prepTimeMinutes: 0, instructions: '', ingredients: [])
+    );
+
+    if (recipe.id.isNotEmpty) {
+      for (var ing in recipe.ingredients) {
+        final key = ing.name.toLowerCase().trim();
+        final pantryIndex = _pantryItems.indexWhere((p) => p.name.toLowerCase().trim() == key);
+        
+        if (pantryIndex != -1) {
+          _pantryItems[pantryIndex].quantity -= ing.quantity;
+          if (_pantryItems[pantryIndex].quantity < 0) {
+            _pantryItems[pantryIndex].quantity = 0;
+          }
+          await _dbHelper.update('pantry_items', _pantryItems[pantryIndex].toJson(), 'id', _pantryItems[pantryIndex].id);
+        }
+      }
+    }
+
+    notifyListeners();
+  }
+
   // --- Shopping List ---
   Future<void> addShoppingItem(ShoppingItem item) async {
     if (item.id.isEmpty) item.id = _uuid.v4();

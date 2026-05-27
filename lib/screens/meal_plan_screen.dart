@@ -168,6 +168,22 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (p.isConsumed)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Text('Consumato', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                              )
+                            else
+                              IconButton(
+                                icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+                                onPressed: () {
+                                  provider.consumeMeal(p.id);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Pasto consumato e ingredienti scalati!')),
+                                  );
+                                },
+                                tooltip: 'Consuma',
+                              ),
                             IconButton(
                               icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () => _showMealForm(context, p),

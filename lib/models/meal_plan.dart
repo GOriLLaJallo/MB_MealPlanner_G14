@@ -3,12 +3,14 @@ class MealPlan {
   DateTime date;
   String mealType; // e.g., 'Colazione', 'Pranzo', 'Cena', 'Spuntino'
   String recipeId;
+  bool isConsumed;
 
   MealPlan({
     required this.id,
     required this.date,
     required this.mealType,
     required this.recipeId,
+    this.isConsumed = false,
   });
 
   factory MealPlan.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class MealPlan {
       date: DateTime.parse(json['date']),
       mealType: json['mealType'],
       recipeId: json['recipeId'],
+      isConsumed: json['isConsumed'] == 1,
     );
   }
 
@@ -26,6 +29,7 @@ class MealPlan {
       'date': date.toIso8601String(),
       'mealType': mealType,
       'recipeId': recipeId,
+      'isConsumed': isConsumed ? 1 : 0,
     };
   }
 }

@@ -35,13 +35,14 @@ L'applicazione risolve il problema della disorganizzazione alimentare e degli sp
 - **Scansione Codici a Barre:** Per l'inserimento rapido dei prodotti in dispensa (richiederebbe librerie native di machine learning e un database API remoto).
 
 ### Feature avanzate scelte
-L'app implementa ben **tre** feature avanzate (il minimo richiesto era due):
+L'app implementa ben **quattro** feature avanzate (il minimo richiesto era due):
 1. **Generazione automatica della spesa:** Calcolo degli ingredienti mancanti per i pasti pianificati nei successivi 7 giorni, sottraendo le giacenze attuali in dispensa.
 2. **Suggerimento intelligente ricette:** La Dashboard consiglia ricette basandosi sulla disponibilità degli ingredienti in dispensa, ottimizzando il consumo.
 3. **Gestione intelligente delle scadenze:** Alert visivi e filtri dedicati per evidenziare i prodotti in scadenza (entro 3 giorni) o già scaduti.
+4. **Gestione Consumi e Scalo Dispensa:** Scalo automatico degli ingredienti dalla dispensa quando un pasto viene consumato tramite l'apposito pulsante.
 
 ### Eventuali limitazioni note
-Poiché i dati sono salvati tramite `SharedPreferences`, disinstallare l'app o cancellare la cache comporta la perdita dei dati (non essendo sincronizzati su cloud). Le conversioni tra unità di misura (es. grammi e chilogrammi) durante la generazione della spesa avvengono con tolleranza basilare e potrebbero richiedere accorgimenti manuali per casi complessi (es. "1 pezzo" vs "100 grammi").
+Poiché i dati sono salvati tramite database locale SQLite (`sqflite`), disinstallare l'app o cancellare i dati comporta la perdita delle informazioni (non essendo sincronizzati su cloud). Le conversioni tra unità di misura (es. grammi e chilogrammi) durante la generazione della spesa avvengono con tolleranza basilare e potrebbero richiedere accorgimenti manuali per casi complessi (es. "1 pezzo" vs "100 grammi").
 
 ---
 
@@ -73,7 +74,7 @@ I dati sono modellati tramite semplici classi Dart (`Recipe`, `PantryItem`, `Mea
 
 ### Librerie principali
 - **`provider`:** Utilizzata per la gestione dello stato reattivo e per iniettare le dipendenze in tutto l'albero dei widget.
-- **`shared_preferences`:** Utilizzata per il salvataggio persistente locale (in formato stringa JSON).
+- **`sqflite`:** Utilizzata per il salvataggio persistente locale tramite database SQLite.
 - **`fl_chart`:** Utilizzata per renderizzare grafici a torta e a barre di alta qualità nella schermata delle statistiche.
 - **`intl`:** Indispensabile per la corretta formattazione delle stringhe di data (es. giorni della settimana e layout `dd/MM/yyyy`).
 
@@ -81,7 +82,7 @@ I dati sono modellati tramite semplici classi Dart (`Recipe`, `PantryItem`, `Mea
 Il pattern `Provider` è stato scelto al posto di soluzioni più complesse (come BLoC o Riverpod) perché l'app ha un ambito dati ben definito (CRUD su 4 entità) e `Provider` offre un bilanciamento perfetto tra curva di apprendimento, verbosità e prestazioni, garantendo che i widget si ricostruiscano solo quando strettamente necessario.
 
 ### Modalità di gestione della persistenza
-I dati vengono serializzati in array JSON e salvati nel filesystem locale tramite `shared_preferences`. La lettura avviene in modo asincrono all'avvio dell'app (`loadData`). Per facilitare i test e la dimostrazione delle feature, è stato implementato un sistema di inserimento di *mock data* che si attiva automaticamente qualora il database risulti vuoto.
+I dati vengono salvati nel filesystem locale tramite database relazionale SQLite (`sqflite`). La lettura avviene in modo asincrono all'avvio dell'app (`loadData`). Per facilitare i test e la dimostrazione delle feature, è stato implementato un sistema di inserimento di *mock data* che si attiva automaticamente qualora il database risulti vuoto.
 
 ---
 
@@ -107,7 +108,7 @@ Demandata a `ChangeNotifier` (`AppProvider`). Tutte le modifiche ai dati passano
 Basata su `Navigator 1.0` (metodi `.push()` e `.pop()`) all'interno delle tab di una `BottomNavigationBar`. Questo approccio risulta sufficiente ed efficace per la ridotta profondità dell'albero di navigazione.
 
 ### Gestione dei dati persistenti
-Affidata ad un metodo unificato `saveData()` richiamato automaticamente dal Provider dopo ogni mutazione di stato. Questo garantisce che la UI e il database locale (SharedPreferences) siano sempre perfettamente sincronizzati.
+Affidata ad chiamate CRUD direttamente al database locale SQLite gestito in `DatabaseHelper`. Questo garantisce che la UI e il database locale siano sempre perfettamente sincronizzati.
 
 ### Parti particolarmente significative o complesse
 La **generazione automatica della spesa** (`generateShoppingList` in `app_provider.dart`) ha richiesto una logica elaborata:

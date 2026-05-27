@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class DatabaseHelper {
   static const _databaseName = "meal_planner.db";
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
 
   // Singleton instance
   DatabaseHelper._privateConstructor();
@@ -31,7 +31,14 @@ class DatabaseHelper {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE meal_plans ADD COLUMN isConsumed INTEGER NOT NULL DEFAULT 0');
+    }
   }
 
   Future _onCreate(Database db, int version) async {
@@ -70,7 +77,8 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         date TEXT NOT NULL,
         mealType TEXT NOT NULL,
-        recipeId TEXT NOT NULL
+        recipeId TEXT NOT NULL,
+        isConsumed INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -99,12 +107,12 @@ class DatabaseHelper {
 
   Future<int> update(String table, Map<String, dynamic> row, String idColumnName, String id) async {
     Database db = await instance.database;
-    return await db.update(table, row, where: '\$idColumnName = ?', whereArgs: [id]);
+    return await db.update(table, row, where: '$idColumnName = ?', whereArgs: [id]);
   }
 
   Future<int> delete(String table, String idColumnName, String id) async {
     Database db = await instance.database;
-    return await db.delete(table, where: '\$idColumnName = ?', whereArgs: [id]);
+    return await db.delete(table, where: '$idColumnName = ?', whereArgs: [id]);
   }
   
   Future<void> clearTable(String table) async {
