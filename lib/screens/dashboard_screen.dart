@@ -214,12 +214,16 @@ class DashboardScreen extends StatelessWidget {
                 children: [
                   _glassIcon(Icons.restaurant_menu_rounded),
                   const SizedBox(width: 12),
-                  const Text(
-                    'Cosa cucino oggi?',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 23,
-                      fontWeight: FontWeight.w900,
+                  const Expanded(
+                    child: Text(
+                      'Cosa cucino oggi?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 23,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -239,6 +243,8 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 7),
                 Text(
                   suggestion.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 27,

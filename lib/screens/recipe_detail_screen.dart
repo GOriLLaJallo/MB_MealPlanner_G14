@@ -53,7 +53,7 @@ class RecipeDetailScreen extends StatelessWidget {
                 flexibleSpace: FlexibleSpaceBar(
                   stretchModes: const [StretchMode.zoomBackground],
                   titlePadding: const EdgeInsets.only(left: 20, bottom: 40, right: 20),
-                  title: Text(recipe.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, shadows: [Shadow(color: Colors.black87, blurRadius: 10)])),
+                  title: Text(recipe.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, shadows: [Shadow(color: Colors.black87, blurRadius: 10)])),
                   background: Stack(
                     fit: StackFit.expand,
                     children: [

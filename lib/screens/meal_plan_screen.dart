@@ -163,38 +163,41 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                           backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
                           child: Icon(Icons.restaurant, color: Theme.of(context).primaryColor),
                         ),
-                        title: Text(recipe.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(recipe.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(p.mealType),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (p.isConsumed)
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                child: Text('Consumato', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                              )
-                            else
+                        trailing: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (p.isConsumed)
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Text('Consumato', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                                )
+                              else
+                                IconButton(
+                                  icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+                                  onPressed: () {
+                                    provider.consumeMeal(p.id);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Pasto consumato e ingredienti scalati!')),
+                                    );
+                                  },
+                                  tooltip: 'Consuma',
+                                ),
                               IconButton(
-                                icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-                                onPressed: () {
-                                  provider.consumeMeal(p.id);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Pasto consumato e ingredienti scalati!')),
-                                  );
-                                },
-                                tooltip: 'Consuma',
+                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () => _showMealForm(context, p),
+                                tooltip: 'Modifica Pasto',
                               ),
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => _showMealForm(context, p),
-                              tooltip: 'Modifica Pasto',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => provider.deleteMealPlan(p.id),
-                              tooltip: 'Rimuovi Pasto',
-                            ),
-                          ],
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => provider.deleteMealPlan(p.id),
+                                tooltip: 'Rimuovi Pasto',
+                              ),
+                            ],
+                          ),
                         ),
                         onTap: () {
                           if (recipe.id.isNotEmpty) {

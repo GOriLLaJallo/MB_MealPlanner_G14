@@ -168,7 +168,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                           ],
                                         ),
                                         const SizedBox(height: 10),
-                                        Text(recipe.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22, height: 1.2)),
+                                        Text(
+                                          recipe.name,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22, height: 1.2),
+                                        ),
                                         const SizedBox(height: 12),
                                         Row(
                                           children: [
