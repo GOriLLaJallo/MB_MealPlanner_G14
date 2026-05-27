@@ -436,18 +436,18 @@ class DashboardScreen extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: isDesktop ? 2.35 : 1.45,
+            mainAxisExtent: 115,
           ),
           itemBuilder: (context, index) {
             final stat = stats[index];
 
             return Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: _softCardDecoration(),
               child: Row(
                 children: [
                   _circleIcon(icon: stat.icon, color: stat.color),
-                  const SizedBox(width: 13),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -457,15 +457,17 @@ class DashboardScreen extends StatelessWidget {
                           stat.value,
                           style: TextStyle(
                             color: stat.color,
-                            fontSize: 28,
+                            fontSize: 26,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
                         Text(
                           stat.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: _darkText,
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -476,7 +478,7 @@ class DashboardScreen extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: _mutedText,
-                            fontSize: 12.5,
+                            fontSize: 12.0,
                           ),
                         ),
                       ],
