@@ -102,9 +102,10 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 value: _category,
                 decoration: const InputDecoration(labelText: 'Categoria'),
-                items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
                 onChanged: (val) => setState(() => _category = val!),
                 onSaved: (val) => _category = val!,
               ),
@@ -118,9 +119,10 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 value: _difficulty,
                 decoration: const InputDecoration(labelText: 'Difficoltà'),
-                items: _difficulties.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+                items: _difficulties.map((d) => DropdownMenuItem(value: d, child: Text(d, overflow: TextOverflow.ellipsis))).toList(),
                 onChanged: (val) => setState(() => _difficulty = val!),
                 onSaved: (val) => _difficulty = val!,
               ),

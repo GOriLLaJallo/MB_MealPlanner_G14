@@ -62,6 +62,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     Expanded(
                       flex: 1,
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 12)),
                         value: _selectedCategory,
                         items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
