@@ -319,19 +319,37 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  List<Recipe> getSafeRecipes() {
+    final now = DateTime.now();
+    return _recipes.where((recipe) {
+      for (var ing in recipe.ingredients) {
+        final matchingItems = _pantryItems.where((p) => p.name.toLowerCase().trim() == ing.name.toLowerCase().trim());
+        if (matchingItems.isNotEmpty) {
+          final allExpired = matchingItems.every((p) => p.expiryDate != null && p.expiryDate!.isBefore(now));
+          if (allExpired) return false;
+        }
+      }
+      return true;
+    }).toList();
+  }
+
   List<Recipe> getSuggestableRecipes() {
-    // Suggerisci ricette per cui si ha almeno il 70% degli ingredienti in dispensa
+    // Suggerisci ricette per cui si ha almeno il 70% degli ingredienti (non scaduti) in dispensa
     List<Recipe> suggestable = [];
-    for (var recipe in _recipes) {
+    final now = DateTime.now();
+    final safe = getSafeRecipes();
+    
+    for (var recipe in safe) {
       if (recipe.ingredients.isEmpty) continue;
       int availableCount = 0;
       for (var ing in recipe.ingredients) {
         final hasIng = _pantryItems.any((p) => 
           p.name.toLowerCase().trim() == ing.name.toLowerCase().trim() && 
-          p.quantity >= ing.quantity);
+          p.quantity >= ing.quantity &&
+          (p.expiryDate == null || !p.expiryDate!.isBefore(now)));
         if (hasIng) availableCount++;
       }
-      if ((availableCount / recipe.ingredients.length) >= 0.7) {
+      if (availableCount == recipe.ingredients.length) {
         suggestable.add(recipe);
       }
     }
@@ -345,12 +363,11 @@ class AppProvider with ChangeNotifier {
     final r1 = Recipe(
       id: _uuid.v4(),
       name: 'Porridge di Avena',
-      category: 'Colazione Dolce',
+      category: 'Colazione',
       prepTimeMinutes: 10,
       difficulty: 'Facile',
       servings: 1,
       notes: 'Ottimo per iniziare la giornata con energia.',
-      imageUrl: 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?w=800&q=80',
       instructions: '1. Cuocere l\'avena nel latte o acqua.\n2. Aggiungere frutta fresca e miele.',
       ingredients: [
         Ingredient(name: 'Avena', quantity: 50, unit: 'g'),
@@ -361,12 +378,11 @@ class AppProvider with ChangeNotifier {
     final r2 = Recipe(
       id: _uuid.v4(),
       name: 'Toast Avocado e Uovo',
-      category: 'Colazione Salata',
+      category: 'Colazione',
       prepTimeMinutes: 10,
       difficulty: 'Media',
       servings: 1,
       notes: 'Usa pane ai cereali per un gusto migliore.',
-      imageUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=800&q=80',
       instructions: '1. Tostare il pane.\n2. Schiacciare l\'avocado.\n3. Cuocere l\'uovo in camicia o sodo.\n4. Comporre il toast.',
       ingredients: [
         Ingredient(name: 'Pane Integrale', quantity: 2, unit: 'fette'),
@@ -381,7 +397,6 @@ class AppProvider with ChangeNotifier {
       prepTimeMinutes: 25,
       difficulty: 'Facile',
       servings: 2,
-      imageUrl: 'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?w=800&q=80',
       instructions: '1. Cuocere la quinoa.\n2. Tagliare i pomodorini e le verdure a cubetti.\n3. Mescolare tutto e condire con olio e limone.',
       ingredients: [
         Ingredient(name: 'Quinoa', quantity: 80, unit: 'g'),
@@ -397,7 +412,6 @@ class AppProvider with ChangeNotifier {
       difficulty: 'Media',
       servings: 2,
       notes: 'Puoi aggiungere fettine di limone sopra il salmone durante la cottura.',
-      imageUrl: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80',
       instructions: '1. Disporre il salmone e gli asparagi su una teglia.\n2. Condire con sale, pepe e limone.\n3. Cuocere in forno a 200°C per 20 minuti.',
       ingredients: [
         Ingredient(name: 'Salmone', quantity: 200, unit: 'g'),
@@ -408,11 +422,10 @@ class AppProvider with ChangeNotifier {
     final r5 = Recipe(
       id: _uuid.v4(),
       name: 'Yogurt Greco con Noci e Miele',
-      category: 'Spuntino Dolce',
+      category: 'Spuntino',
       prepTimeMinutes: 5,
       difficulty: 'Facile',
       servings: 1,
-      imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&q=80',
       instructions: '1. Versare lo yogurt in una tazza.\n2. Aggiungere le noci tritate e il miele.',
       ingredients: [
         Ingredient(name: 'Yogurt Greco', quantity: 150, unit: 'g'),
@@ -423,12 +436,11 @@ class AppProvider with ChangeNotifier {
     final r6 = Recipe(
       id: _uuid.v4(),
       name: 'Mandorle Tostate',
-      category: 'Spuntino Salato',
+      category: 'Spuntino',
       prepTimeMinutes: 5,
       difficulty: 'Facile',
       servings: 1,
       notes: 'Non salare troppo se usate come spuntino frequente.',
-      imageUrl: 'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=800&q=80',
       instructions: '1. Mangiare le mandorle tostate come spuntino.',
       ingredients: [
         Ingredient(name: 'Mandorle', quantity: 30, unit: 'g'),
@@ -442,7 +454,6 @@ class AppProvider with ChangeNotifier {
       prepTimeMinutes: 20,
       difficulty: 'Facile',
       servings: 2,
-      imageUrl: 'https://images.unsplash.com/photo-1595295333158-4742f28fbd85?w=800&q=80',
       instructions: '1. Cuocere gli spaghetti in acqua salata.\\n2. Preparare il sugo con passata e basilico.\\n3. Scolare la pasta e saltare nel sugo.',
       ingredients: [
         Ingredient(name: 'Spaghetti', quantity: 200, unit: 'g'),
@@ -457,7 +468,6 @@ class AppProvider with ChangeNotifier {
       prepTimeMinutes: 45,
       difficulty: 'Media',
       servings: 4,
-      imageUrl: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?w=800&q=80',
       instructions: '1. Tagliare il pollo a pezzi e le patate a cubetti.\\n2. Condire con olio, rosmarino e sale.\\n3. Cuocere in forno a 200°C per 40 minuti.',
       ingredients: [
         Ingredient(name: 'Pollo', quantity: 600, unit: 'g'),
@@ -468,11 +478,10 @@ class AppProvider with ChangeNotifier {
     final r9 = Recipe(
       id: _uuid.v4(),
       name: 'Smoothie Banana e Burro di Arachidi',
-      category: 'Spuntino Dolce',
+      category: 'Spuntino',
       prepTimeMinutes: 5,
       difficulty: 'Facile',
       servings: 1,
-      imageUrl: 'https://images.unsplash.com/photo-1577805947697-89e18249d767?w=800&q=80',
       instructions: '1. Inserire banana, latte e burro di arachidi nel frullatore.\\n2. Frullare fino a ottenere un composto liscio.',
       ingredients: [
         Ingredient(name: 'Banana', quantity: 1, unit: 'pz'),
@@ -487,7 +496,6 @@ class AppProvider with ChangeNotifier {
       prepTimeMinutes: 25,
       difficulty: 'Media',
       servings: 2,
-      imageUrl: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=800&q=80',
       instructions: '1. Rosolare la carne macinata con le spezie.\\n2. Scaldare le tortillas.\\n3. Farcire i tacos con carne, insalata e formaggio.',
       ingredients: [
         Ingredient(name: 'Carne Macinata', quantity: 300, unit: 'g'),

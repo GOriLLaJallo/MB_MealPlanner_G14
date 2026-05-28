@@ -9,6 +9,7 @@ import 'statistics_screen.dart';
 import 'recipes_screen.dart';
 import 'meal_plan_screen.dart';
 import 'pantry_screen.dart';
+import '../models/recipe.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -67,10 +68,7 @@ class DashboardScreen extends StatelessWidget {
                           const SizedBox(height: 18),
                           _buildHeroSection(
                             context: context,
-                            suggestable: suggestable,
-                            recipesCount: recipesCount,
-                            mealPlansCount: mealPlansCount,
-                            expiringCount: expiringItems.length,
+                            recipes: provider.getSuggestableRecipes(),
                           ),
                           const SizedBox(height: 18),
                           _buildStatsGrid(
@@ -80,8 +78,6 @@ class DashboardScreen extends StatelessWidget {
                             expiringCount: expiringItems.length,
                             suggestableCount: suggestable.length,
                           ),
-                          const SizedBox(height: 18),
-                          _buildSmartTipsCard(context),
                           const SizedBox(height: 18),
                           _buildChartCard(context, categories),
                         ],
@@ -151,122 +147,9 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildHeroSection({
     required BuildContext context,
-    required List<dynamic> suggestable,
-    required int recipesCount,
-    required int mealPlansCount,
-    required int expiringCount,
+    required List<Recipe> recipes,
   }) {
-    final hasSuggestion = suggestable.isNotEmpty;
-    final suggestion = hasSuggestion ? suggestable.first : null;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF2E7D32), // Forest Green
-            Color(0xFF388E3C), // Green
-            Color(0xFF4CAF50), // Light Green
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.3),
-            blurRadius: 28,
-            offset: const Offset(0, 16),
-          ),
-        ],
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 720;
-
-          final leftContent = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  _glassIcon(Icons.restaurant_menu_rounded),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      'Cosa cucino oggi?',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 23,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Text(
-                hasSuggestion
-                    ? 'In base alla tua dispensa puoi preparare:'
-                    : 'Aggiungi prodotti in dispensa per ricevere suggerimenti automatici.',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.90),
-                  fontSize: 15.5,
-                  height: 1.3,
-                ),
-              ),
-              if (hasSuggestion) ...[
-                const SizedBox(height: 7),
-                Text(
-                  suggestion.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 27,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.4,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.green.shade700,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  icon: const Icon(Icons.arrow_forward_rounded),
-                  label: const Text(
-                    'Vedi ricetta',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            RecipeDetailScreen(recipeId: suggestion.id),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ],
-          );
-
-          return leftContent;
-        },
-      ),
-    );
+    return _DailySuggestionSlider(recipes: recipes);
   }
 
 
@@ -302,20 +185,12 @@ class DashboardScreen extends StatelessWidget {
         color: Colors.redAccent,
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PantryScreen(initialShowOnlyExpiring: true))),
       ),
-      _DashboardStat(
-        title: 'Consigli',
-        value: suggestableCount.toString(),
-        subtitle: 'ricette possibili',
-        icon: Icons.tips_and_updates_rounded,
-        color: Colors.purple,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecipesScreen())),
-      ),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 850;
-        final crossAxisCount = isDesktop ? 4 : 2;
+        final crossAxisCount = isDesktop ? 3 : 2;
 
         return GridView.builder(
           itemCount: stats.length,
@@ -385,84 +260,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-
-  Widget _buildSmartTipsCard(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: _softCardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionTitle(
-            icon: Icons.auto_awesome_rounded,
-            title: 'Funzioni smart',
-          ),
-          const SizedBox(height: 15),
-          _smartTipRow(
-            icon: Icons.shopping_cart_checkout_rounded,
-            title: 'Lista spesa automatica',
-            subtitle: 'Generata confrontando piano pasti e dispensa.',
-            color: Colors.orange,
-          ),
-          const SizedBox(height: 12),
-          _smartTipRow(
-            icon: Icons.restaurant_rounded,
-            title: 'Ricette consigliate',
-            subtitle: 'Suggerite in base agli ingredienti disponibili.',
-            color: AppTheme.primaryColor,
-          ),
-
-        ],
-      ),
-    );
-  }
-
-  Widget _smartTipRow({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Row(
-      children: [
-        Container(
-          height: 42,
-          width: 42,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.11),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: _darkText,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14.5,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: _mutedText,
-                  fontSize: 12.8,
-                  height: 1.25,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildChartCard(BuildContext context, Map<String, int> categories) {
     return Container(
@@ -678,4 +475,186 @@ class _DashboardStat {
     required this.color,
     required this.onTap,
   });
+}
+
+
+class _DailySuggestionSlider extends StatefulWidget {
+  final List<Recipe> recipes;
+  const _DailySuggestionSlider({required this.recipes});
+
+  @override
+  State<_DailySuggestionSlider> createState() => _DailySuggestionSliderState();
+}
+
+class _DailySuggestionSliderState extends State<_DailySuggestionSlider> {
+  final PageController _pageController = PageController();
+  final List<String> _categories = ['Colazione', 'Spuntino', 'Primo', 'Secondo', 'Dolce'];
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _nextPage() {
+    if (_pageController.hasClients) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _prevPage() {
+    if (_pageController.hasClients) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> dailySuggestions = [];
+    for (String cat in _categories) {
+      final matches = widget.recipes.where((r) => r.category == cat).toList();
+      if (matches.isNotEmpty) {
+        dailySuggestions.add({'category': cat, 'recipe': matches.first});
+      } else {
+        dailySuggestions.add({'category': cat, 'recipe': null});
+      }
+    }
+
+    return Container(
+      width: double.infinity,
+      height: 270,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2E7D32), Color(0xFF388E3C), Color(0xFF4CAF50)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF4CAF50).withOpacity(0.3),
+            blurRadius: 28,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: dailySuggestions.length,
+            itemBuilder: (context, index) {
+              final suggestion = dailySuggestions[index];
+              final String catName = suggestion['category'];
+              final recipe = suggestion['recipe'];
+
+              return Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          height: 48,
+                          width: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.22),
+                            borderRadius: BorderRadius.circular(17),
+                          ),
+                          child: const Icon(Icons.restaurant_menu_rounded, color: Colors.white, size: 26),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Cosa cucino oggi? ($catName)',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 21,
+                              fontWeight: FontWeight.w900,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    if (recipe != null) ...[
+                      Text(
+                        'Una fantastica idea per te:',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.90),
+                          fontSize: 15.5,
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      Text(
+                        recipe.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 25,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Color(0xFF388E3C),
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        icon: const Icon(Icons.arrow_forward_rounded),
+                        label: const Text('Vedi ricetta', style: TextStyle(fontWeight: FontWeight.w800)),
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => RecipeDetailScreen(recipeId: recipe.id)));
+                        },
+                      ),
+                    ] else ...[
+                      Text(
+                        'Nessuna ricetta suggeribile.\nAggiungi ingredienti freschi in dispensa per ricevere consigli!',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.90),
+                          fontSize: 15.5,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+          Positioned(
+            right: 16,
+            bottom: 24,
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+                  onPressed: _prevPage,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white),
+                  onPressed: _nextPage,
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
 }

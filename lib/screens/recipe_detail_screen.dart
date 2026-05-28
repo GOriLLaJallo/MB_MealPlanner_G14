@@ -57,12 +57,7 @@ class RecipeDetailScreen extends StatelessWidget {
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Hero(
-                        tag: 'recipe_image_${recipe.id}',
-                        child: recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty
-                            ? Image.network(recipe.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildFallbackHeader(context))
-                            : _buildFallbackHeader(context),
-                      ),
+                      _buildFallbackHeader(context),
                       // Gradient Overlay for text readability
                       DecoratedBox(
                         decoration: BoxDecoration(

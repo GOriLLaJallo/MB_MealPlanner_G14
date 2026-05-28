@@ -53,8 +53,7 @@ class DatabaseHelper {
         servings INTEGER NOT NULL,
         instructions TEXT NOT NULL,
         ingredients TEXT NOT NULL,
-        notes TEXT,
-        imageUrl TEXT
+        notes TEXT
       )
     ''');
 

@@ -21,10 +21,9 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
   late String _difficulty;
   late int _servings;
   late String _notes;
-  late String _imageUrl;
   List<Ingredient> _ingredients = [];
 
-  final List<String> _categories = ['Colazione Dolce', 'Colazione Salata', 'Primo', 'Secondo', 'Contorno', 'Spuntino Dolce', 'Spuntino Salato', 'Dolce', 'Altro'];
+  final List<String> _categories = ['Colazione', 'Spuntino', 'Primo', 'Secondo', 'Contorno', 'Dolce', 'Altro'];
   final List<String> _difficulties = ['Facile', 'Media', 'Difficile'];
 
   @override
@@ -38,7 +37,6 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
       _difficulty = widget.recipe!.difficulty;
       _servings = widget.recipe!.servings;
       _notes = widget.recipe!.notes ?? '';
-      _imageUrl = widget.recipe!.imageUrl ?? '';
       _ingredients = widget.recipe!.ingredients.map((i) => Ingredient(name: i.name, quantity: i.quantity, unit: i.unit)).toList();
     } else {
       _name = '';
@@ -48,7 +46,6 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
       _difficulty = 'Facile';
       _servings = 1;
       _notes = '';
-      _imageUrl = '';
     }
   }
 
@@ -64,7 +61,6 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
         servings: _servings,
         instructions: _instructions,
         notes: _notes.isNotEmpty ? _notes : null,
-        imageUrl: _imageUrl.isNotEmpty ? _imageUrl : null,
         ingredients: _ingredients.where((i) => i.name.isNotEmpty).toList(),
       );
 
@@ -147,12 +143,6 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                 decoration: const InputDecoration(labelText: 'Note aggiuntive (opzionale)'),
                 maxLines: 2,
                 onSaved: (val) => _notes = val ?? '',
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                initialValue: _imageUrl,
-                decoration: const InputDecoration(labelText: 'URL Immagine (opzionale)'),
-                onSaved: (val) => _imageUrl = val ?? '',
               ),
               const SizedBox(height: 24),
               Row(

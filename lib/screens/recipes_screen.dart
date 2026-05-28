@@ -17,7 +17,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String _searchQuery = '';
   String _selectedCategory = 'Tutte';
   double _maxPrepTime = 120; // in minuti (es. max 2 ore)
-  final List<String> _categories = ['Tutte', 'Colazione Dolce', 'Colazione Salata', 'Primo', 'Secondo', 'Contorno', 'Spuntino Dolce', 'Spuntino Salato', 'Dolce', 'Altro'];
+  final List<String> _categories = ['Tutte', 'Colazione', 'Spuntino', 'Primo', 'Secondo', 'Contorno', 'Dolce', 'Altro'];
 
   @override
   Widget build(BuildContext context) {
@@ -128,17 +128,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  if (recipe.imageUrl != null && recipe.imageUrl!.isNotEmpty)
-                                    Hero(
-                                      tag: 'recipe_image_${recipe.id}',
-                                      child: Image.network(
-                                        recipe.imageUrl!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200, child: const Icon(Icons.image_not_supported)),
-                                      ),
-                                    )
-                                  else
-                                    Container(color: AppTheme.primaryColor.withOpacity(0.2), child: Icon(Icons.restaurant, size: 60, color: AppTheme.primaryColor)),
+                                  Container(color: AppTheme.primaryColor.withOpacity(0.2), child: Icon(Icons.restaurant, size: 60, color: AppTheme.primaryColor)),
                                   
                                   // Gradient Overlay
                                   DecoratedBox(

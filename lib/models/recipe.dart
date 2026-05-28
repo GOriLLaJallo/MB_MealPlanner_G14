@@ -11,7 +11,6 @@ class Recipe {
   String instructions;
   List<Ingredient> ingredients;
   String? notes;
-  String? imageUrl; // Per l'arricchimento visivo
 
   Recipe({
     required this.id,
@@ -23,7 +22,6 @@ class Recipe {
     this.instructions = '',
     this.ingredients = const [],
     this.notes,
-    this.imageUrl,
   });
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
@@ -49,7 +47,6 @@ class Recipe {
       instructions: json['instructions'] ?? '',
       ingredients: parsedIngredients,
       notes: json['notes'],
-      imageUrl: json['imageUrl'],
     );
   }
 
@@ -65,7 +62,6 @@ class Recipe {
       // Convert list to JSON string for SQLite storage
       'ingredients': jsonEncode(ingredients.map((i) => i.toJson()).toList()),
       'notes': notes,
-      'imageUrl': imageUrl,
     };
   }
 }
