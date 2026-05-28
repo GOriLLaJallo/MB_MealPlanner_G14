@@ -167,39 +167,36 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                         ),
                         title: Text(recipe.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(p.mealType),
-                        trailing: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (p.isConsumed)
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                  child: Text('Consumato', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                                )
-                              else
-                                IconButton(
-                                  icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-                                  onPressed: () {
-                                    provider.consumeMeal(p.id);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Pasto consumato e ingredienti scalati!')),
-                                    );
-                                  },
-                                  tooltip: 'Consuma',
-                                ),
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () => _showMealForm(context, p),
-                                tooltip: 'Modifica Pasto',
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: Icon(
+                                p.isConsumed ? Icons.check_circle : Icons.check_circle_outline,
+                                color: p.isConsumed ? Colors.grey : Colors.green,
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => provider.deleteMealPlan(p.id),
-                                tooltip: 'Rimuovi Pasto',
-                              ),
-                            ],
-                          ),
+                              onPressed: p.isConsumed ? null : () {
+                                provider.consumeMeal(p.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Pasto consumato e ingredienti scalati!')),
+                                );
+                              },
+                              tooltip: p.isConsumed ? 'Già consumato' : 'Consuma',
+                            ),
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () => _showMealForm(context, p),
+                              tooltip: 'Modifica Pasto',
+                            ),
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => provider.deleteMealPlan(p.id),
+                              tooltip: 'Rimuovi Pasto',
+                            ),
+                          ],
                         ),
                         onTap: () {
                           if (recipe.id.isNotEmpty) {

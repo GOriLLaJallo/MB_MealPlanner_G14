@@ -256,6 +256,14 @@ class AppProvider with ChangeNotifier {
       }
     }
 
+    // 2.5 Sottrai ingredienti già nella lista della spesa
+    for (var shoppingItem in _shoppingList) {
+      final key = shoppingItem.name.toLowerCase().trim();
+      if (requiredIngredients.containsKey(key)) {
+        requiredIngredients[key] = requiredIngredients[key]! - shoppingItem.quantity;
+      }
+    }
+
     // 3. Aggiungi alla lista della spesa
     for (var entry in requiredIngredients.entries) {
       final name = entry.key;
