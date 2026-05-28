@@ -4,7 +4,10 @@ import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
 import '../models/meal_plan.dart';
 import '../models/recipe.dart';
+import '../models/pantry_item.dart';
 import 'recipe_detail_screen.dart';
+
+enum MealStatus { ok, expired, missing }
 
 class MealPlanScreen extends StatefulWidget {
   const MealPlanScreen({super.key});
@@ -15,6 +18,35 @@ class MealPlanScreen extends StatefulWidget {
 
 class _MealPlanScreenState extends State<MealPlanScreen> {
   DateTime _selectedDate = DateTime.now();
+
+  MealStatus _checkMealStatus(Recipe recipe, List<PantryItem> pantry) {
+    if (recipe.id.isEmpty) return MealStatus.ok;
+
+    final now = DateTime.now();
+    bool hasExpired = false;
+    bool isMissing = false;
+
+    for (var ing in recipe.ingredients) {
+      final matchingItems = pantry.where((p) => p.name.toLowerCase().trim() == ing.name.toLowerCase().trim()).toList();
+      if (matchingItems.isEmpty) {
+        isMissing = true;
+      } else {
+        double totalQty = matchingItems.fold(0.0, (sum, item) => sum + item.quantity);
+        if (totalQty < ing.quantity) {
+          isMissing = true;
+        }
+
+        final allExpired = matchingItems.every((p) => p.expiryDate != null && p.expiryDate!.isBefore(now));
+        if (allExpired && totalQty >= ing.quantity) {
+          hasExpired = true;
+        }
+      }
+    }
+
+    if (isMissing) return MealStatus.missing;
+    if (hasExpired) return MealStatus.expired;
+    return MealStatus.ok;
+  }
 
   void _showMealForm(BuildContext context, [MealPlan? plan]) {
     final recipes = Provider.of<AppProvider>(context, listen: false).recipes;
@@ -158,7 +190,19 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   ),
                   ...plans.map((p) {
                     final recipe = provider.recipes.firstWhere((r) => r.id == p.recipeId, orElse: () => Recipe(id: '', name: 'Ricetta Rimossa', category: '', prepTimeMinutes: 0, instructions: '', ingredients: []));
+                    
+                    final status = _checkMealStatus(recipe, provider.pantryItems);
+                    Color? cardColor;
+                    if (!p.isConsumed) {
+                      if (status == MealStatus.missing) {
+                        cardColor = Colors.red.shade100;
+                      } else if (status == MealStatus.expired) {
+                        cardColor = Colors.yellow.shade100;
+                      }
+                    }
+
                     return Card(
+                      color: cardColor,
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       child: ListTile(
                         leading: CircleAvatar(
@@ -176,11 +220,40 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                                 p.isConsumed ? Icons.check_circle : Icons.check_circle_outline,
                                 color: p.isConsumed ? Colors.grey : Colors.green,
                               ),
-                              onPressed: p.isConsumed ? null : () {
+                              onPressed: p.isConsumed ? null : () async {
+                                if (status == MealStatus.missing) {
+                                  await showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Ingredienti Mancanti'),
+                                      content: const Text('Non puoi consumare questo pasto perché mancano alcuni ingredienti in dispensa.'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Chiudi')),
+                                      ],
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (status == MealStatus.expired) {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Attenzione'),
+                                      content: const Text('Questo pasto utilizza ingredienti scaduti. Vuoi consumarlo lo stesso?'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annulla')),
+                                        TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Consuma')),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm != true) return;
+                                }
                                 provider.consumeMeal(p.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Pasto consumato e ingredienti scalati!')),
-                                );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Pasto consumato e ingredienti scalati!')),
+                                  );
+                                }
                               },
                               tooltip: p.isConsumed ? 'Già consumato' : 'Consuma',
                             ),

@@ -110,84 +110,55 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       )
                     : ListView.builder(
                         itemCount: filtered.length,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemBuilder: (context, index) {
                           final recipe = filtered[index];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 20),
-                            height: 220,
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 8))],
-                            ),
-                            child: InkWell(
+                          return Card(
+                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            child: ListTile(
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(Icons.restaurant, color: AppTheme.primaryColor),
+                              ),
+                              title: Text(recipe.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Wrap(
+                                  spacing: 12,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.fitness_center, size: 14, color: Colors.grey.shade600),
+                                        const SizedBox(width: 4),
+                                        Text(recipe.difficulty, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.timer, size: 14, color: Colors.grey.shade600),
+                                        const SizedBox(width: 4),
+                                        Text('${recipe.prepTimeMinutes} min', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                                      ],
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: AppTheme.primaryColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                      child: Text(recipe.category, style: TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
                               onTap: () {
                                 Navigator.push(context, MaterialPageRoute(builder: (_) => RecipeDetailScreen(recipeId: recipe.id)));
                               },
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Container(color: AppTheme.primaryColor.withOpacity(0.2), child: Icon(Icons.restaurant, size: 60, color: AppTheme.primaryColor)),
-                                  
-                                  // Gradient Overlay
-                                  DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
-                                        stops: const [0.4, 1.0],
-                                      ),
-                                    ),
-                                  ),
-                                  
-                                  // Content
-                                  Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                              decoration: BoxDecoration(color: AppTheme.primaryColor, borderRadius: BorderRadius.circular(12)),
-                                              child: Text(recipe.category, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Text(
-                                          recipe.name,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22, height: 1.2),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.fitness_center, size: 16, color: Colors.white70),
-                                            const SizedBox(width: 6),
-                                            Text(recipe.difficulty, style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
-                                            const SizedBox(width: 16),
-                                            const Icon(Icons.timer, size: 16, color: Colors.white70),
-                                            const SizedBox(width: 6),
-                                            Text('${recipe.prepTimeMinutes} min', style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
-                                            const Spacer(),
-                                            Container(
-                                              padding: const EdgeInsets.all(8),
-                                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-                                              child: const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.white),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
                           );
                         },
