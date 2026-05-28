@@ -5,7 +5,12 @@ import '../providers/app_provider.dart';
 import '../models/pantry_item.dart';
 
 class PantryScreen extends StatefulWidget {
-  const PantryScreen({super.key});
+  final bool initialShowOnlyExpiring;
+
+  const PantryScreen({
+    super.key,
+    this.initialShowOnlyExpiring = false,
+  });
 
   @override
   State<PantryScreen> createState() => _PantryScreenState();
@@ -13,7 +18,13 @@ class PantryScreen extends StatefulWidget {
 
 class _PantryScreenState extends State<PantryScreen> {
   String _searchQuery = '';
-  bool _showOnlyExpiring = false;
+  late bool _showOnlyExpiring;
+
+  @override
+  void initState() {
+    super.initState();
+    _showOnlyExpiring = widget.initialShowOnlyExpiring;
+  }
 
   void _showItemForm(BuildContext context, [PantryItem? item]) {
     final nameCtrl = TextEditingController(text: item?.name ?? '');

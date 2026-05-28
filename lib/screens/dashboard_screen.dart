@@ -6,6 +6,9 @@ import '../providers/app_provider.dart';
 import '../utils/theme.dart';
 import 'recipe_detail_screen.dart';
 import 'statistics_screen.dart';
+import 'recipes_screen.dart';
+import 'meal_plan_screen.dart';
+import 'pantry_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -78,32 +81,7 @@ class DashboardScreen extends StatelessWidget {
                             suggestableCount: suggestable.length,
                           ),
                           const SizedBox(height: 18),
-                          if (isDesktop)
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  flex: 5,
-                                  child: _buildAttentionSection(
-                                    context,
-                                    expiringItems.length,
-                                  ),
-                                ),
-                                const SizedBox(width: 18),
-                                Expanded(
-                                  flex: 4,
-                                  child: _buildSmartTipsCard(context),
-                                ),
-                              ],
-                            )
-                          else ...[
-                            _buildAttentionSection(
-                              context,
-                              expiringItems.length,
-                            ),
-                            const SizedBox(height: 18),
-                            _buildSmartTipsCard(context),
-                          ],
+                          _buildSmartTipsCard(context),
                           const SizedBox(height: 18),
                           _buildChartCard(context, categories),
                         ],
@@ -285,105 +263,12 @@ class DashboardScreen extends StatelessWidget {
             ],
           );
 
-          final rightContent = _buildHeroMiniStats(
-            recipesCount: recipesCount,
-            mealPlansCount: mealPlansCount,
-            expiringCount: expiringCount,
-          );
-
-          if (isWide) {
-            return Row(
-              children: [
-                Expanded(flex: 6, child: leftContent),
-                const SizedBox(width: 24),
-                Expanded(flex: 4, child: rightContent),
-              ],
-            );
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [leftContent, const SizedBox(height: 22), rightContent],
-          );
+          return leftContent;
         },
       ),
     );
   }
 
-  Widget _buildHeroMiniStats({
-    required int recipesCount,
-    required int mealPlansCount,
-    required int expiringCount,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.17),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.22)),
-      ),
-      child: Column(
-        children: [
-          _heroStatLine(
-            icon: Icons.menu_book_rounded,
-            label: 'Ricette salvate',
-            value: recipesCount.toString(),
-          ),
-          const SizedBox(height: 13),
-          _heroStatLine(
-            icon: Icons.calendar_month_rounded,
-            label: 'Pasti nei prossimi 7 giorni',
-            value: mealPlansCount.toString(),
-          ),
-          const SizedBox(height: 13),
-          _heroStatLine(
-            icon: Icons.warning_amber_rounded,
-            label: 'Prodotti da controllare',
-            value: expiringCount.toString(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _heroStatLine({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Row(
-      children: [
-        Container(
-          height: 38,
-          width: 38,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.22),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: Colors.white, size: 20),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.90),
-              fontSize: 13.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 21,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildStatsGrid({
     required BuildContext context,
@@ -399,6 +284,7 @@ class DashboardScreen extends StatelessWidget {
         subtitle: 'totali salvate',
         icon: Icons.menu_book_rounded,
         color: AppTheme.primaryColor,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecipesScreen())),
       ),
       _DashboardStat(
         title: 'Pasti',
@@ -406,6 +292,7 @@ class DashboardScreen extends StatelessWidget {
         subtitle: 'programmati',
         icon: Icons.calendar_month_rounded,
         color: AppTheme.accentColor,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MealPlanScreen())),
       ),
       _DashboardStat(
         title: 'Scadenze',
@@ -413,6 +300,7 @@ class DashboardScreen extends StatelessWidget {
         subtitle: 'da controllare',
         icon: Icons.warning_amber_rounded,
         color: Colors.redAccent,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PantryScreen(initialShowOnlyExpiring: true))),
       ),
       _DashboardStat(
         title: 'Consigli',
@@ -420,6 +308,7 @@ class DashboardScreen extends StatelessWidget {
         subtitle: 'ricette possibili',
         icon: Icons.tips_and_updates_rounded,
         color: Colors.purple,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecipesScreen())),
       ),
     ];
 
@@ -441,11 +330,13 @@ class DashboardScreen extends StatelessWidget {
           itemBuilder: (context, index) {
             final stat = stats[index];
 
-            return Container(
-              padding: const EdgeInsets.all(12),
-              decoration: _softCardDecoration(),
-              child: Row(
-                children: [
+            return GestureDetector(
+              onTap: stat.onTap,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: _softCardDecoration(),
+                child: Row(
+                  children: [
                   _circleIcon(icon: stat.icon, color: stat.color),
                   const SizedBox(width: 10),
                   Expanded(
@@ -486,69 +377,14 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            );
-          },
+            ),
+          );
+        },
         );
       },
     );
   }
 
-  Widget _buildAttentionSection(BuildContext context, int expiringCount) {
-    final hasAlert = expiringCount > 0;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: hasAlert ? Colors.red.shade50 : Colors.green.shade50,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(
-          color: hasAlert ? Colors.red.shade100 : Colors.green.shade100,
-        ),
-      ),
-      child: Row(
-        children: [
-          _circleIcon(
-            icon: hasAlert
-                ? Icons.warning_amber_rounded
-                : Icons.check_circle_rounded,
-            color: hasAlert ? Colors.redAccent : Colors.green,
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  hasAlert
-                      ? 'Attenzione alle scadenze'
-                      : 'Dispensa sotto controllo',
-                  style: TextStyle(
-                    color: hasAlert
-                        ? Colors.red.shade700
-                        : Colors.green.shade700,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  hasAlert
-                      ? 'Hai $expiringCount prodotti in scadenza o già scaduti. Controllali nella sezione Dispensa.'
-                      : 'Non risultano prodotti in scadenza nei prossimi giorni.',
-                  style: const TextStyle(
-                    color: _mutedText,
-                    fontSize: 14,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSmartTipsCard(BuildContext context) {
     return Container(
@@ -576,13 +412,7 @@ class DashboardScreen extends StatelessWidget {
             subtitle: 'Suggerite in base agli ingredienti disponibili.',
             color: AppTheme.primaryColor,
           ),
-          const SizedBox(height: 12),
-          _smartTipRow(
-            icon: Icons.event_busy_rounded,
-            title: 'Controllo scadenze',
-            subtitle: 'Evidenzia prodotti vicini alla scadenza.',
-            color: Colors.redAccent,
-          ),
+
         ],
       ),
     );
@@ -838,6 +668,7 @@ class _DashboardStat {
   final String subtitle;
   final IconData icon;
   final Color color;
+  final VoidCallback onTap;
 
   const _DashboardStat({
     required this.title,
@@ -845,5 +676,6 @@ class _DashboardStat {
     required this.subtitle,
     required this.icon,
     required this.color,
+    required this.onTap,
   });
 }
