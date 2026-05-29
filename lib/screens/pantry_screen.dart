@@ -100,8 +100,9 @@ class _PantryScreenState extends State<PantryScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         value: selectedUnit,
-                        decoration: const InputDecoration(labelText: 'Unità di misura'),
+                        decoration: const InputDecoration(labelText: 'Unità'),
                         items: const [
                           DropdownMenuItem(value: 'g', child: Text('Grammi (g)')),
                           DropdownMenuItem(value: 'ml', child: Text('Millilitri (ml)')),

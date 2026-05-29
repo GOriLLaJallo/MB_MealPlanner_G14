@@ -494,19 +494,37 @@ class _DailySuggestionSliderState extends State<_DailySuggestionSlider> {
 
   void _nextPage() {
     if (_pageController.hasClients) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      final int currentPage = _pageController.page?.round() ?? 0;
+      if (currentPage == _categories.length - 1) {
+        _pageController.animateToPage(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
     }
   }
 
   void _prevPage() {
     if (_pageController.hasClients) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      final int currentPage = _pageController.page?.round() ?? 0;
+      if (currentPage == 0) {
+        _pageController.animateToPage(
+          _categories.length - 1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        _pageController.previousPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
     }
   }
 
