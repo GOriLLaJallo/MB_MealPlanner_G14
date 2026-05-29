@@ -48,6 +48,21 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
     return MealStatus.ok;
   }
 
+  List<String> _getMissingIngredientsList(Recipe recipe, List<PantryItem> pantry) {
+    List<String> missing = [];
+    for (var ing in recipe.ingredients) {
+      final matchingItems = pantry.where((p) => p.name.toLowerCase().trim() == ing.name.toLowerCase().trim()).toList();
+      double totalQty = matchingItems.fold(0.0, (sum, item) => sum + item.quantity);
+      if (totalQty < ing.quantity) {
+        double diff = ing.quantity - totalQty;
+        // Format to avoid decimals if whole number
+        String diffStr = diff == diff.truncateToDouble() ? diff.truncate().toString() : diff.toStringAsFixed(1);
+        missing.add('- ${ing.name}: $diffStr ${ing.unit}');
+      }
+    }
+    return missing;
+  }
+
   void _showMealForm(BuildContext context, [MealPlan? plan]) {
     final recipes = Provider.of<AppProvider>(context, listen: false).recipes;
     if (recipes.isEmpty) {
@@ -222,11 +237,19 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                               ),
                               onPressed: p.isConsumed ? null : () async {
                                 if (status == MealStatus.missing) {
+                                  final missingList = _getMissingIngredientsList(recipe, provider.pantryItems);
                                   await showDialog(
                                     context: context,
                                     builder: (ctx) => AlertDialog(
                                       title: const Text('Ingredienti Mancanti'),
-                                      content: const Text('Non puoi consumare questo pasto perché mancano alcuni ingredienti in dispensa.'),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text('Non puoi consumare questo pasto perché mancano i seguenti ingredienti in dispensa:\n'),
+                                          ...missingList.map((m) => Text(m)),
+                                        ],
+                                      ),
                                       actions: [
                                         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Chiudi')),
                                       ],
