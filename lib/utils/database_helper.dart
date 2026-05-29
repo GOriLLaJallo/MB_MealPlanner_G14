@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class DatabaseHelper {
   static const _databaseName = "meal_planner.db";
-  static const _databaseVersion = 2;
+  static const _databaseVersion = 3;
 
   // Singleton instance
   DatabaseHelper._privateConstructor();
@@ -38,6 +38,9 @@ class DatabaseHelper {
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE meal_plans ADD COLUMN isConsumed INTEGER NOT NULL DEFAULT 0');
+    }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE meal_plans ADD COLUMN portionsMultiplier REAL NOT NULL DEFAULT 1.0');
     }
   }
 
@@ -77,7 +80,8 @@ class DatabaseHelper {
         date TEXT NOT NULL,
         mealType TEXT NOT NULL,
         recipeId TEXT NOT NULL,
-        isConsumed INTEGER NOT NULL DEFAULT 0
+        isConsumed INTEGER NOT NULL DEFAULT 0,
+        portionsMultiplier REAL NOT NULL DEFAULT 1.0
       )
     ''');
 

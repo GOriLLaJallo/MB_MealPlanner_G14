@@ -19,7 +19,7 @@ class MealPlanScreen extends StatefulWidget {
 class _MealPlanScreenState extends State<MealPlanScreen> {
   DateTime _selectedDate = DateTime.now();
 
-  MealStatus _checkMealStatus(Recipe recipe, List<PantryItem> pantry) {
+  MealStatus _checkMealStatus(Recipe recipe, List<PantryItem> pantry, double portionsMultiplier) {
     if (recipe.id.isEmpty) return MealStatus.ok;
 
     final now = DateTime.now();
@@ -27,17 +27,18 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
     bool isMissing = false;
 
     for (var ing in recipe.ingredients) {
+      double requiredQty = ing.quantity * portionsMultiplier;
       final matchingItems = pantry.where((p) => p.name.toLowerCase().trim() == ing.name.toLowerCase().trim()).toList();
       if (matchingItems.isEmpty) {
         isMissing = true;
       } else {
         double totalQty = matchingItems.fold(0.0, (sum, item) => sum + item.quantity);
-        if (totalQty < ing.quantity) {
+        if (totalQty < requiredQty) {
           isMissing = true;
         }
 
         final allExpired = matchingItems.every((p) => p.expiryDate != null && p.expiryDate!.isBefore(now));
-        if (allExpired && totalQty >= ing.quantity) {
+        if (allExpired && totalQty >= requiredQty) {
           hasExpired = true;
         }
       }
@@ -48,13 +49,14 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
     return MealStatus.ok;
   }
 
-  List<String> _getMissingIngredientsList(Recipe recipe, List<PantryItem> pantry) {
+  List<String> _getMissingIngredientsList(Recipe recipe, List<PantryItem> pantry, double portionsMultiplier) {
     List<String> missing = [];
     for (var ing in recipe.ingredients) {
+      double requiredQty = ing.quantity * portionsMultiplier;
       final matchingItems = pantry.where((p) => p.name.toLowerCase().trim() == ing.name.toLowerCase().trim()).toList();
       double totalQty = matchingItems.fold(0.0, (sum, item) => sum + item.quantity);
-      if (totalQty < ing.quantity) {
-        double diff = ing.quantity - totalQty;
+      if (totalQty < requiredQty) {
+        double diff = requiredQty - totalQty;
         // Format to avoid decimals if whole number
         String diffStr = diff == diff.truncateToDouble() ? diff.truncate().toString() : diff.toStringAsFixed(1);
         missing.add('- ${ing.name}: $diffStr ${ing.unit}');
@@ -73,6 +75,9 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
     String? selectedRecipeId = plan?.recipeId ?? recipes.first.id;
     String selectedMealType = plan?.mealType ?? 'Pranzo';
     DateTime selectedPlanDate = plan?.date ?? _selectedDate;
+    double selectedPortions = plan?.portionsMultiplier ?? 1.0;
+    
+    final portionsController = TextEditingController(text: selectedPortions.toString());
 
     final mealTypes = ['Colazione', 'Pranzo', 'Cena', 'Spuntino'];
 
@@ -110,6 +115,21 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   onChanged: (val) => setModalState(() => selectedMealType = val!),
                 ),
                 const SizedBox(height: 16),
+                TextFormField(
+                  controller: portionsController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Moltiplicatore Porzioni (es. 0.5, 2)',
+                    hintText: '1.0',
+                  ),
+                  onChanged: (val) {
+                    final parsed = double.tryParse(val.replaceAll(',', '.'));
+                    if (parsed != null && parsed > 0) {
+                      selectedPortions = parsed;
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -142,6 +162,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                         date: selectedPlanDate,
                         mealType: selectedMealType,
                         recipeId: selectedRecipeId!,
+                        portionsMultiplier: selectedPortions,
                       );
                       
                       if (plan == null) {
@@ -206,7 +227,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                   ...plans.map((p) {
                     final recipe = provider.recipes.firstWhere((r) => r.id == p.recipeId, orElse: () => Recipe(id: '', name: 'Ricetta Rimossa', category: '', prepTimeMinutes: 0, instructions: '', ingredients: []));
                     
-                    final status = _checkMealStatus(recipe, provider.pantryItems);
+                    final status = _checkMealStatus(recipe, provider.pantryItems, p.portionsMultiplier);
                     Color? cardColor;
                     if (!p.isConsumed) {
                       if (status == MealStatus.missing) {
@@ -225,7 +246,16 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                           child: Icon(Icons.restaurant, color: Theme.of(context).primaryColor),
                         ),
                         title: Text(recipe.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(p.mealType),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(p.mealType),
+                            Text(
+                              'Porzioni: ${p.portionsMultiplier.toString().replaceAll(RegExp(r"([.]*0)(?!.*\d)"), "")}x', 
+                              style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 12)
+                            ),
+                          ],
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -237,7 +267,7 @@ class _MealPlanScreenState extends State<MealPlanScreen> {
                               ),
                               onPressed: p.isConsumed ? null : () async {
                                 if (status == MealStatus.missing) {
-                                  final missingList = _getMissingIngredientsList(recipe, provider.pantryItems);
+                                  final missingList = _getMissingIngredientsList(recipe, provider.pantryItems, p.portionsMultiplier);
                                   await showDialog(
                                     context: context,
                                     builder: (ctx) => AlertDialog(

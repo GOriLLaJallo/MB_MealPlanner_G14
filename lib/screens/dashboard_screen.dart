@@ -117,30 +117,6 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.06),
-                blurRadius: 15,
-                offset: const Offset(0, 7),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.bar_chart_rounded),
-            tooltip: 'Statistiche',
-            color: AppTheme.primaryColor,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const StatisticsScreen()),
-              );
-            },
-          ),
-        ),
       ],
     );
   }
@@ -312,6 +288,26 @@ class DashboardScreen extends StatelessWidget {
                 );
               },
             ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: TextButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StatisticsScreen()),
+                );
+              },
+              icon: const Icon(Icons.bar_chart_rounded),
+              label: const Text(
+                'Altre statistiche',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+              ),
+            ),
+          ),
         ],
       ),
     );

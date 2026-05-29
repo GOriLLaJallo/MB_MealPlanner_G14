@@ -41,6 +41,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
             final matchesTime = r.prepTimeMinutes <= _maxPrepTime;
             return matchesSearch && matchesCategory && matchesTime;
           }).toList();
+          
+          filtered.sort((a, b) {
+            int catCompare = a.category.compareTo(b.category);
+            if (catCompare != 0) return catCompare;
+            return a.name.compareTo(b.name);
+          });
 
           return Column(
             children: [
@@ -112,7 +118,27 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {
                           final recipe = filtered[index];
-                          return Card(
+                          
+                          bool showHeader = false;
+                          if (index == 0 || filtered[index - 1].category != recipe.category) {
+                            showHeader = true;
+                          }
+                          
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (showHeader)
+                                Container(
+                                  width: double.infinity,
+                                  color: Colors.grey.shade200,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  margin: EdgeInsets.only(top: index == 0 ? 0 : 8),
+                                  child: Text(
+                                    recipe.category.toUpperCase(),
+                                    style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
+                              Card(
                             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             child: ListTile(
                               leading: Container(
@@ -147,11 +173,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                         Text('${recipe.prepTimeMinutes} min', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                                       ],
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: AppTheme.primaryColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                                      child: Text(recipe.category, style: TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
-                                    ),
+
                                   ],
                                 ),
                               ),
@@ -160,8 +182,10 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                 Navigator.push(context, MaterialPageRoute(builder: (_) => RecipeDetailScreen(recipeId: recipe.id)));
                               },
                             ),
-                          );
-                        },
+                          ),
+                        ],
+                      );
+                    },
                       ),
               ),
             ],

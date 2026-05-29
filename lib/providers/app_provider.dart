@@ -184,7 +184,7 @@ class AppProvider with ChangeNotifier {
         final pantryIndex = _pantryItems.indexWhere((p) => p.name.toLowerCase().trim() == key);
         
         if (pantryIndex != -1) {
-          _pantryItems[pantryIndex].quantity -= ing.quantity;
+          _pantryItems[pantryIndex].quantity -= (ing.quantity * plan.portionsMultiplier);
           if (_pantryItems[pantryIndex].quantity < 0) {
             _pantryItems[pantryIndex].quantity = 0;
           }
@@ -244,7 +244,7 @@ class AppProvider with ChangeNotifier {
 
       for (var ing in recipe.ingredients) {
         final key = ing.name.toLowerCase().trim();
-        requiredIngredients[key] = (requiredIngredients[key] ?? 0.0) + ing.quantity;
+        requiredIngredients[key] = (requiredIngredients[key] ?? 0.0) + (ing.quantity * plan.portionsMultiplier);
         ingredientUnits[key] = ing.unit;
       }
     }
@@ -373,7 +373,7 @@ class AppProvider with ChangeNotifier {
       ingredients: [
         Ingredient(name: 'Avena', quantity: 50, unit: 'g'),
         Ingredient(name: 'Latte', quantity: 200, unit: 'ml'),
-        Ingredient(name: 'Miele', quantity: 1, unit: 'cucchiaio'),
+        Ingredient(name: 'Miele', quantity: 20, unit: 'g'),
       ],
     );
     final r2 = Recipe(
@@ -386,9 +386,9 @@ class AppProvider with ChangeNotifier {
       notes: 'Usa pane ai cereali per un gusto migliore.',
       instructions: '1. Tostare il pane.\n2. Schiacciare l\'avocado.\n3. Cuocere l\'uovo in camicia o sodo.\n4. Comporre il toast.',
       ingredients: [
-        Ingredient(name: 'Pane Integrale', quantity: 2, unit: 'fette'),
-        Ingredient(name: 'Avocado', quantity: 0.5, unit: 'pz'),
-        Ingredient(name: 'Uova', quantity: 1, unit: 'pz'),
+        Ingredient(name: 'Pane Integrale', quantity: 60, unit: 'g'),
+        Ingredient(name: 'Avocado', quantity: 75, unit: 'g'),
+        Ingredient(name: 'Uova', quantity: 50, unit: 'g'),
       ],
     );
     final r3 = Recipe(
@@ -402,7 +402,7 @@ class AppProvider with ChangeNotifier {
       ingredients: [
         Ingredient(name: 'Quinoa', quantity: 80, unit: 'g'),
         Ingredient(name: 'Pomodorini', quantity: 100, unit: 'g'),
-        Ingredient(name: 'Olio d\'oliva', quantity: 1, unit: 'cucchiaio'),
+        Ingredient(name: 'Olio d\'oliva', quantity: 15, unit: 'ml'),
       ],
     );
     final r4 = Recipe(
@@ -417,7 +417,7 @@ class AppProvider with ChangeNotifier {
       ingredients: [
         Ingredient(name: 'Salmone', quantity: 200, unit: 'g'),
         Ingredient(name: 'Asparagi', quantity: 150, unit: 'g'),
-        Ingredient(name: 'Limone', quantity: 0.5, unit: 'pz'),
+        Ingredient(name: 'Limone', quantity: 25, unit: 'ml'),
       ],
     );
     final r5 = Recipe(
@@ -431,7 +431,7 @@ class AppProvider with ChangeNotifier {
       ingredients: [
         Ingredient(name: 'Yogurt Greco', quantity: 150, unit: 'g'),
         Ingredient(name: 'Noci', quantity: 20, unit: 'g'),
-        Ingredient(name: 'Miele', quantity: 1, unit: 'cucchiaino'),
+        Ingredient(name: 'Miele', quantity: 10, unit: 'g'),
       ],
     );
     final r6 = Recipe(
@@ -455,11 +455,11 @@ class AppProvider with ChangeNotifier {
       prepTimeMinutes: 20,
       difficulty: 'Facile',
       servings: 2,
-      instructions: '1. Cuocere gli spaghetti in acqua salata.\\n2. Preparare il sugo con passata e basilico.\\n3. Scolare la pasta e saltare nel sugo.',
+      instructions: '1. Cuocere gli spaghetti in acqua salata.\n2. Preparare il sugo con passata e basilico.\n3. Scolare la pasta e saltare nel sugo.',
       ingredients: [
         Ingredient(name: 'Spaghetti', quantity: 200, unit: 'g'),
         Ingredient(name: 'Passata di Pomodoro', quantity: 250, unit: 'ml'),
-        Ingredient(name: 'Basilico', quantity: 5, unit: 'foglie'),
+        Ingredient(name: 'Basilico', quantity: 5, unit: 'g'),
       ],
     );
     final r8 = Recipe(
@@ -469,11 +469,11 @@ class AppProvider with ChangeNotifier {
       prepTimeMinutes: 45,
       difficulty: 'Media',
       servings: 4,
-      instructions: '1. Tagliare il pollo a pezzi e le patate a cubetti.\\n2. Condire con olio, rosmarino e sale.\\n3. Cuocere in forno a 200°C per 40 minuti.',
+      instructions: '1. Tagliare il pollo a pezzi e le patate a cubetti.\n2. Condire con olio, rosmarino e sale.\n3. Cuocere in forno a 200°C per 40 minuti.',
       ingredients: [
         Ingredient(name: 'Pollo', quantity: 600, unit: 'g'),
         Ingredient(name: 'Patate', quantity: 500, unit: 'g'),
-        Ingredient(name: 'Rosmarino', quantity: 2, unit: 'rametti'),
+        Ingredient(name: 'Rosmarino', quantity: 10, unit: 'g'),
       ],
     );
     final r9 = Recipe(
@@ -483,43 +483,28 @@ class AppProvider with ChangeNotifier {
       prepTimeMinutes: 5,
       difficulty: 'Facile',
       servings: 1,
-      instructions: '1. Inserire banana, latte e burro di arachidi nel frullatore.\\n2. Frullare fino a ottenere un composto liscio.',
+      instructions: '1. Inserire banana, latte e burro di arachidi nel frullatore.\n2. Frullare fino a ottenere un composto liscio.',
       ingredients: [
-        Ingredient(name: 'Banana', quantity: 1, unit: 'pz'),
+        Ingredient(name: 'Banana', quantity: 120, unit: 'g'),
         Ingredient(name: 'Latte', quantity: 200, unit: 'ml'),
-        Ingredient(name: 'Burro di Arachidi', quantity: 1, unit: 'cucchiaio'),
+        Ingredient(name: 'Burro di Arachidi', quantity: 20, unit: 'g'),
       ],
     );
-    final r10 = Recipe(
-      id: _uuid.v4(),
-      name: 'Tacos di Carne',
-      category: 'Piatto Unico',
-      prepTimeMinutes: 25,
-      difficulty: 'Media',
-      servings: 2,
-      instructions: '1. Rosolare la carne macinata con le spezie.\\n2. Scaldare le tortillas.\\n3. Farcire i tacos con carne, insalata e formaggio.',
-      ingredients: [
-        Ingredient(name: 'Carne Macinata', quantity: 300, unit: 'g'),
-        Ingredient(name: 'Tortillas', quantity: 4, unit: 'pz'),
-        Ingredient(name: 'Formaggio Grattugiato', quantity: 50, unit: 'g'),
-      ],
-    );
-
-    _recipes = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10];
+    _recipes = [r1, r2, r3, r4, r5, r6, r7, r8, r9];
 
     _pantryItems = [
-      PantryItem(id: _uuid.v4(), name: 'Avena', category: 'Cereali', quantity: 500, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 90))),
-      PantryItem(id: _uuid.v4(), name: 'Avocado', category: 'Verdura', quantity: 1, unit: 'pz', expiryDate: DateTime.now().add(const Duration(days: 2)), notes: 'Maturo, da usare presto!'), 
-      PantryItem(id: _uuid.v4(), name: 'Uova', category: 'Latticini', quantity: 6, unit: 'pz', expiryDate: DateTime.now().add(const Duration(days: 10))),
-      PantryItem(id: _uuid.v4(), name: 'Quinoa', category: 'Cereali', quantity: 300, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 180))),
+      PantryItem(id: _uuid.v4(), name: 'Avena', category: 'Carboidrati', quantity: 500, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 90))),
+      PantryItem(id: _uuid.v4(), name: 'Avocado', category: 'Verdura', quantity: 150, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 2)), notes: 'Maturo, da usare presto!'), 
+      PantryItem(id: _uuid.v4(), name: 'Uova', category: 'Latticini', quantity: 300, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 10))),
+      PantryItem(id: _uuid.v4(), name: 'Quinoa', category: 'Carboidrati', quantity: 300, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 180))),
       PantryItem(id: _uuid.v4(), name: 'Salmone', category: 'Pesce', quantity: 0, unit: 'g', expiryDate: null, notes: 'Surgelato o fresco'), 
       PantryItem(id: _uuid.v4(), name: 'Asparagi', category: 'Verdura', quantity: 200, unit: 'g', expiryDate: DateTime.now().subtract(const Duration(days: 1)), notes: 'Forse da buttare'), 
       PantryItem(id: _uuid.v4(), name: 'Yogurt Greco', category: 'Latticini', quantity: 500, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 15))),
-      PantryItem(id: _uuid.v4(), name: 'Noci', category: 'Frutta Secca', quantity: 200, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 60))),
-      PantryItem(id: _uuid.v4(), name: 'Miele', category: 'Dolci', quantity: 1, unit: 'vasetto', expiryDate: DateTime.now().add(const Duration(days: 365))),
-      PantryItem(id: _uuid.v4(), name: 'Mandorle', category: 'Frutta Secca', quantity: 200, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 120))),
-      PantryItem(id: _uuid.v4(), name: 'Spaghetti', category: 'Pasta', quantity: 1000, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 300))),
-      PantryItem(id: _uuid.v4(), name: 'Passata di Pomodoro', category: 'Conserve', quantity: 500, unit: 'ml', expiryDate: DateTime.now().add(const Duration(days: 180))),
+      PantryItem(id: _uuid.v4(), name: 'Noci', category: 'Frutta secca', quantity: 200, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 60))),
+      PantryItem(id: _uuid.v4(), name: 'Miele', category: 'Pasticceria', quantity: 250, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 365))),
+      PantryItem(id: _uuid.v4(), name: 'Mandorle', category: 'Frutta secca', quantity: 200, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 120))),
+      PantryItem(id: _uuid.v4(), name: 'Spaghetti', category: 'Carboidrati', quantity: 1000, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 300))),
+      PantryItem(id: _uuid.v4(), name: 'Passata di Pomodoro', category: 'Altro', quantity: 500, unit: 'ml', expiryDate: DateTime.now().add(const Duration(days: 180))),
       PantryItem(id: _uuid.v4(), name: 'Pollo', category: 'Carne', quantity: 800, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 3))),
       PantryItem(id: _uuid.v4(), name: 'Patate', category: 'Verdura', quantity: 1000, unit: 'g', expiryDate: DateTime.now().add(const Duration(days: 30))),
     ];
@@ -535,7 +520,6 @@ class AppProvider with ChangeNotifier {
       MealPlan(id: _uuid.v4(), date: today.add(const Duration(days: 1)), mealType: 'Pranzo', recipeId: r7.id),
       MealPlan(id: _uuid.v4(), date: today.add(const Duration(days: 1)), mealType: 'Cena', recipeId: r8.id),
       MealPlan(id: _uuid.v4(), date: today.add(const Duration(days: 2)), mealType: 'Spuntino', recipeId: r9.id),
-      MealPlan(id: _uuid.v4(), date: today.add(const Duration(days: 2)), mealType: 'Cena', recipeId: r10.id),
     ];
   }
 }

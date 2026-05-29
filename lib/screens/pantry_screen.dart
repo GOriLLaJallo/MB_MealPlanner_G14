@@ -4,6 +4,22 @@ import 'package:intl/intl.dart';
 import '../providers/app_provider.dart';
 import '../models/pantry_item.dart';
 
+const List<String> pantryCategories = [
+  'Frutta',
+  'Verdura',
+  'Carne',
+  'Pesce',
+  'Uova',
+  'Latticini',
+  'Legumi',
+  'Carboidrati',
+  'Frutta secca',
+  'Pasticceria',
+  'Liquidi',
+  'Vegan',
+  'Altro'
+];
+
 class PantryScreen extends StatefulWidget {
   final bool initialShowOnlyExpiring;
 
@@ -29,8 +45,13 @@ class _PantryScreenState extends State<PantryScreen> {
   void _showItemForm(BuildContext context, [PantryItem? item]) {
     final nameCtrl = TextEditingController(text: item?.name ?? '');
     final quantityCtrl = TextEditingController(text: item?.quantity.toString() ?? '');
-    final unitCtrl = TextEditingController(text: item?.unit ?? '');
     final notesCtrl = TextEditingController(text: item?.notes ?? '');
+    String selectedCategory = item?.category ?? 'Altro';
+    if (!pantryCategories.contains(selectedCategory)) {
+      selectedCategory = 'Altro';
+    }
+    String selectedUnit = item?.unit ?? 'g';
+    if (selectedUnit != 'g' && selectedUnit != 'ml') selectedUnit = 'g';
     DateTime? selectedDate = item?.expiryDate;
 
     showModalBottomSheet(
@@ -56,6 +77,17 @@ class _PantryScreenState extends State<PantryScreen> {
                   decoration: const InputDecoration(labelText: 'Nome Prodotto'),
                 ),
                 const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  decoration: const InputDecoration(labelText: 'Categoria'),
+                  items: pantryCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  onChanged: (val) {
+                    if (val != null) {
+                      setModalState(() => selectedCategory = val);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -67,9 +99,18 @@ class _PantryScreenState extends State<PantryScreen> {
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextField(
-                        controller: unitCtrl,
+                      child: DropdownButtonFormField<String>(
+                        value: selectedUnit,
                         decoration: const InputDecoration(labelText: 'Unità di misura'),
+                        items: const [
+                          DropdownMenuItem(value: 'g', child: Text('Grammi (g)')),
+                          DropdownMenuItem(value: 'ml', child: Text('Millilitri (ml)')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setModalState(() => selectedUnit = val);
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -116,8 +157,9 @@ class _PantryScreenState extends State<PantryScreen> {
                       final newItem = PantryItem(
                         id: item?.id ?? '',
                         name: name,
+                        category: selectedCategory,
                         quantity: quantity,
-                        unit: unitCtrl.text.trim(),
+                        unit: selectedUnit,
                         expiryDate: selectedDate,
                         notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null,
                       );
@@ -163,6 +205,18 @@ class _PantryScreenState extends State<PantryScreen> {
             final matchesExpiry = !_showOnlyExpiring || isExpiringSoon;
             return matchesSearch && matchesExpiry;
           }).toList();
+
+          filtered.sort((a, b) {
+            int indexA = pantryCategories.indexOf(a.category);
+            int indexB = pantryCategories.indexOf(b.category);
+            if (indexA == -1) indexA = pantryCategories.length;
+            if (indexB == -1) indexB = pantryCategories.length;
+            
+            if (indexA != indexB) {
+              return indexA.compareTo(indexB);
+            }
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          });
 
           return Column(
             children: [
@@ -219,10 +273,34 @@ class _PantryScreenState extends State<PantryScreen> {
                           }
 
                           Color? cardColor;
-                          if (isExpired) cardColor = Colors.red.shade50;
-                          else if (isExpiringSoon) cardColor = Colors.orange.shade50;
+                          if (item.quantity <= 0) {
+                            cardColor = Colors.red.shade100;
+                          } else if (isExpired) {
+                            cardColor = Colors.orange.shade100;
+                          } else if (isExpiringSoon) {
+                            cardColor = Colors.yellow.shade100;
+                          }
 
-                          return Card(
+                          bool showHeader = false;
+                          if (index == 0 || filtered[index - 1].category != item.category) {
+                            showHeader = true;
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (showHeader)
+                                Container(
+                                  width: double.infinity,
+                                  color: Colors.grey.shade200,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  margin: EdgeInsets.only(top: index == 0 ? 0 : 8),
+                                  child: Text(
+                                    item.category.toUpperCase(),
+                                    style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
+                              Card(
                             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             color: cardColor,
                             child: ListTile(
@@ -230,13 +308,19 @@ class _PantryScreenState extends State<PantryScreen> {
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('${item.quantity} ${item.unit}'),
+                                  Text(
+                                    '${item.quantity} ${item.unit}',
+                                    style: TextStyle(
+                                      color: item.quantity <= 0 ? Colors.red.shade900 : null,
+                                      fontWeight: item.quantity <= 0 ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
                                   if (item.expiryDate != null)
                                     Text(
                                       'Scadenza: ${DateFormat('dd/MM/yyyy').format(item.expiryDate!)}',
                                       style: TextStyle(
-                                        color: isExpired ? Colors.red : (isExpiringSoon ? Colors.orange.shade800 : Colors.grey.shade600),
-                                        fontWeight: isExpired || isExpiringSoon ? FontWeight.bold : FontWeight.normal,
+                                          color: isExpired ? Colors.orange.shade800 : (isExpiringSoon ? Colors.amber.shade800 : Colors.grey.shade600),
+                                          fontWeight: isExpired || isExpiringSoon ? FontWeight.bold : FontWeight.normal,
                                       ),
                                     ),
                                   if (item.notes != null && item.notes!.isNotEmpty)
@@ -252,6 +336,8 @@ class _PantryScreenState extends State<PantryScreen> {
                               ),
                               onTap: () => _showItemForm(context, item),
                             ),
+                          )
+                            ],
                           );
                         },
                       ),
