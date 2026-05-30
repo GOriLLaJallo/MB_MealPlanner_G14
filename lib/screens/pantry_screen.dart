@@ -34,6 +34,7 @@ class PantryScreen extends StatefulWidget {
 
 class _PantryScreenState extends State<PantryScreen> {
   String _searchQuery = '';
+  String _selectedCategory = 'Tutte';
   late bool _showOnlyExpiring;
 
   @override
@@ -195,6 +196,7 @@ class _PantryScreenState extends State<PantryScreen> {
 
           List<PantryItem> filtered = provider.pantryItems.where((p) {
             final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            final matchesCategory = _selectedCategory == 'Tutte' || p.category == _selectedCategory;
             
             bool isExpiringSoon = false;
             if (p.expiryDate != null) {
@@ -204,7 +206,7 @@ class _PantryScreenState extends State<PantryScreen> {
             }
 
             final matchesExpiry = !_showOnlyExpiring || isExpiringSoon;
-            return matchesSearch && matchesExpiry;
+            return matchesSearch && matchesCategory && matchesExpiry;
           }).toList();
 
           filtered.sort((a, b) {
@@ -226,23 +228,42 @@ class _PantryScreenState extends State<PantryScreen> {
                 child: Row(
                   children: [
                     Expanded(
+                      flex: 2,
                       child: TextField(
                         decoration: const InputDecoration(
-                          hintText: 'Cerca prodotto in dispensa...',
+                          hintText: 'Cerca in dispensa...',
                           prefixIcon: Icon(Icons.search),
                         ),
                         onChanged: (val) => setState(() => _searchQuery = val),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    FilterChip(
-                      label: const Text('In Scadenza'),
-                      selected: _showOnlyExpiring,
-                      onSelected: (val) => setState(() => _showOnlyExpiring = val),
-                      selectedColor: Colors.orange.shade100,
-                      avatar: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 1,
+                      child: DropdownButtonFormField<String>(
+                        isExpanded: true,
+                        decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 12)),
+                        value: _selectedCategory,
+                        items: ['Tutte', ...pantryCategories].map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedCategory = val);
+                        },
+                      ),
                     ),
                   ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FilterChip(
+                    label: const Text('In Scadenza / Scaduti'),
+                    selected: _showOnlyExpiring,
+                    onSelected: (val) => setState(() => _showOnlyExpiring = val),
+                    selectedColor: Colors.orange.shade100,
+                    avatar: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                  ),
                 ),
               ),
               Expanded(
